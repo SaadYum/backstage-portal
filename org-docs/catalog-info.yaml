@@ -2,7 +2,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: org-docs
-  description: Central documentation hub for the developer portal demo
+  description: Canonical Org Knowledge Base for the publishing platform demo
   annotations:
     backstage.io/techdocs-ref: dir:.
 spec:

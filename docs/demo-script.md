@@ -1,6 +1,6 @@
-# Backstage Portal — Demo Script
+# Backstage Portal — Org Knowledge Base Demo Script
 
-This guide walks you through starting Backstage, navigating the UI, and exploring the sample catalog and TechDocs.
+This guide walks through the docs-first demo path for the Backstage portal.
 
 ---
 
@@ -8,28 +8,19 @@ This guide walks you through starting Backstage, navigating the UI, and explorin
 
 ### Prerequisites
 
-| Tool             | Minimum version | How to check         |
-|------------------|-----------------|----------------------|
-| Node.js          | 20              | `node --version`     |
-| Yarn (Classic)   | 1.22            | `yarn --version`     |
-| Python           | 3.9             | `python3 --version`  |
-| pip              | 21              | `pip3 --version`     |
+| Tool | Minimum version | How to check |
+|---|---|---|
+| Node.js | 20 | `node --version` |
+| Yarn | 4.x via Corepack | `yarn --version` |
+| Python | 3.9 | `python3 --version` |
+| pip | 21 | `pip3 --version` |
 
-### Install TechDocs generator (once only)
-
-TechDocs uses MkDocs to render documentation. Install the core plugin:
+### Install dependencies
 
 ```bash
 pip3 install mkdocs-techdocs-core
-```
-
-### Install JavaScript dependencies (once only)
-
-```bash
 yarn install
 ```
-
-> This installs all Backstage frontend and backend packages. It may take a few minutes on first run.
 
 ### Start the portal
 
@@ -37,90 +28,95 @@ yarn install
 yarn dev
 ```
 
-Backstage starts two processes:
+| Process | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| Backend | http://localhost:7007 |
 
-| Process  | URL                       |
-|----------|---------------------------|
-| Frontend | http://localhost:3000     |
-| Backend  | http://localhost:7007     |
-
-Open **http://localhost:3000** in your browser. The catalog is automatically populated from the local `catalog/` directory.
+Open **http://localhost:3000**.
 
 ---
 
-## 2. Navigating the UI
+## 2. Show the catalog context
 
-### Step 1 — Catalog home
-
-The home page defaults to the **Catalog** view (all components).  
-You will see entries for:
-
-- `platform-lib`
-- `publisher-service`
-- `console-ui`
-- `manager-ui`
-- `platform-infra`
-
-Use the **Kind** filter on the left sidebar to switch between Components, Systems, Groups, and Users.
-
-### Step 2 — Explore the System
-
-1. Change the **Kind** filter to **System**.
-2. Click **publishing-platform**.
-3. The system page shows all components that belong to this system.
-
-### Step 3 — Dependency graph
-
-1. Click any component, e.g. **console-ui**.
-2. Switch to the **Relations** tab (or look for the **Dependencies** card).
-3. You will see that `console-ui` dependsOn `publisher-service`, which in turn dependsOn `platform-lib`.
-
-### Step 4 — TechDocs
-
-1. From any component page, click the **Docs** tab.
-2. Backstage generates the MkDocs site on-the-fly (first load may take a few seconds).
-3. For `publisher-service`, you will see two pages in the left sidebar:
-   - **Overview** (`index.md`) — purpose, ownership, how to run
-   - **REST API Reference** (`api.md`) — endpoint table, request/response examples, error codes
-4. For `console-ui` and `manager-ui`, you will see:
-   - **Overview** (`index.md`)
-   - **Integrations** (`integrations.md`) — which API endpoints they call and why
-5. Try navigating to `platform-lib` docs to read about the shared library.
-
-### Step 5 — Groups
-
-1. Change the **Kind** filter to **Group**.
-2. Explore `team-backend` and `team-frontend` to see which components each team owns.
+1. Start on the **Catalog** home page.
+2. Highlight the main components:
+   - `platform-lib`
+   - `publisher-service`
+   - `console-ui`
+   - `manager-ui`
+   - `platform-infra`
+3. Open `publishing-platform` under **Systems** to show how the sample repos fit together.
+4. Open any component's **Docs** tab to show that per-repo TechDocs still exist as detailed source material.
 
 ---
 
-## 3. Example questions to ask an LLM
+## 3. Show the canonical org docs entrypoint
 
-Use these when exploring the catalog with an AI assistant (e.g. GitHub Copilot Chat or any LLM with access to this repo):
+1. Open the `org-docs` component from the catalog.
+2. Click the **Docs** tab.
+3. Walk the left navigation and explain that this is now the single stable entrypoint for:
+   - repository registry
+   - architecture
+   - product specs
+   - contracts
+   - runbooks
+   - glossary
+   - metadata schema
 
-| Question | Where the answer lives |
-|----------|------------------------|
-| "What services does console-ui depend on?" | Catalog: `console-ui` → Relations tab; or `catalog/frontend-components.yaml` |
-| "What endpoints does manager-ui call?" | TechDocs: `manager-ui` → Docs → Integrations |
-| "How do I authenticate to publisher-service?" | TechDocs: `publisher-service` → Docs → REST API Reference → Authentication section |
-| "What error code does publisher-service return for a missing resource?" | TechDocs: `publisher-service` → Docs → REST API Reference → Error Codes table |
-| "Which team owns platform-lib?" | Catalog: `platform-lib` component card shows owner `team-backend` |
-| "What shared library do all services use?" | Catalog: dependency graph, or search for `platform-lib` |
-| "How do I run publisher-service locally?" | TechDocs: `publisher-service` → Docs → Overview → How to Run |
-| "What environment variables does manager-ui need?" | TechDocs: `manager-ui` → Docs → Overview → Environment variables |
+### Key page flow
+
+- **Overview** — explains the source-of-truth model and retrieval-friendly IDs.
+- **Repository Registry** — shows what each represented repo does, who owns it, and what it depends on.
+- **Architecture** — shows how repo metadata and docs feed the generated knowledge base.
+- **Product Specs** — show explicit mappings from features to repo paths.
+- **Contracts** — point to the machine-readable OpenAPI file for `publisher-service`.
+- **Runbooks / Glossary / Metadata Schema** — show operational guidance, shared language, and the repo metadata contract.
 
 ---
 
-## 4. What is in the Catalog vs TechDocs
+## 4. Demo the machine-ingestible layer
 
-| Information type                  | Location         |
-|-----------------------------------|------------------|
-| Component name, owner, lifecycle  | Catalog          |
-| System membership                 | Catalog          |
-| Dependency relationships          | Catalog          |
-| How to run a component locally    | TechDocs         |
-| API endpoint table                | TechDocs         |
-| Request / response examples       | TechDocs         |
-| Error codes                       | TechDocs         |
-| Which API endpoints a UI calls    | TechDocs         |
-| Operational runbooks              | TechDocs         |
+Use the repo view or terminal to show these files:
+
+- `/home/runner/work/backstage-portal/backstage-portal/repo.yaml`
+- `/home/runner/work/backstage-portal/backstage-portal/org-docs/org-index.yaml`
+- `/home/runner/work/backstage-portal/backstage-portal/org-docs/contracts/publisher-service.openapi.yaml`
+
+Explain:
+
+- `repo.yaml` is the stable per-repo metadata contract.
+- `org-index.yaml` is the generated org-level inventory for automation and future retrieval systems.
+- the OpenAPI file is the deterministic contract for the main cross-repo HTTP surface.
+
+---
+
+## 5. Demo continuous freshness
+
+Run:
+
+```bash
+python3 scripts/generate_org_knowledge_base.py --check
+```
+
+Then point out the CI workflow in `.github/workflows/catalog-docs-check.yml`:
+
+- validates YAML
+- checks generated knowledge-base files are up to date
+- verifies required docs exist
+- builds every TechDocs site
+
+This makes the knowledge base demoable even without showing a live chat workflow.
+
+---
+
+## 6. Example questions this structure now answers cleanly
+
+| Question | Best source |
+|---|---|
+| "What repos are part of the publishing platform?" | `org-docs` → Repository Registry |
+| "Who owns manager-ui and what does it depend on?" | `org-docs` → Repository Registry |
+| "Where is the content lifecycle implemented?" | `org-docs` → Product Specs |
+| "What fields are in the publisher-service API contract?" | `org-docs/contracts/publisher-service.openapi.yaml` |
+| "Where do deployment and incident docs belong?" | `org-docs` → Runbooks |
+| "What metadata does every repo need to publish?" | `org-docs` → Metadata Schema |

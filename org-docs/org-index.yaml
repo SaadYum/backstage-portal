@@ -1,0 +1,223 @@
+schema_version: 1
+canonical_docs:
+  component: org-docs
+  docs_root: org-docs/docs
+  registry_page: org-docs/docs/repository-registry.md
+repositories:
+- id: repo:backstage-portal
+  schema_version: 1
+  name: backstage-portal
+  description: Backstage developer portal demo that hosts the Publishing Platform
+    catalog and the org-level knowledge base.
+  domain: developer-portal
+  lifecycle: active
+  owners:
+    team: team-backend
+    slack: '#team-backend'
+  entrypoints:
+  - name: backstage-frontend
+    kind: app
+    path: packages/app
+    description: Backstage React frontend for catalog and TechDocs navigation.
+  - name: backstage-backend
+    kind: service
+    path: packages/backend
+    description: Backstage backend serving catalog, TechDocs, and supporting APIs.
+  - name: org-docs
+    kind: docs
+    path: org-docs
+    description: Canonical Org Knowledge Base TechDocs site.
+  dependencies:
+    internal_repositories:
+    - platform-lib
+    - publisher-service
+    - console-ui
+    - manager-ui
+    - platform-infra
+    external_services:
+    - GitHub
+    - local filesystem
+  interfaces:
+    produces:
+    - type: catalog
+      name: backstage-catalog
+      path: catalog/*.yaml
+      description: Catalog entities and ownership metadata for the demo platform.
+    - type: techdocs
+      name: org-knowledge-base
+      path: org-docs/docs
+      description: Human-readable org documentation rendered through TechDocs.
+    - type: index
+      name: org-index
+      path: org-docs/org-index.yaml
+      description: Machine-ingestible index of repositories, products, contracts,
+        and ownership.
+    consumes:
+    - type: git
+      name: local-repository-content
+      description: Reads catalog YAML, TechDocs markdown, and contract artifacts from
+        this repository.
+  security:
+    auth_method: backstage-guest-auth-local
+    permissions_model: Backstage permission framework enabled with guest access for
+      the local demo.
+    data_sensitivity: internal-demo
+  environments:
+  - name: local
+    deployment_target: developer workstation
+    docs_url: org-docs/docs/runbooks/index.md#environments
+  - name: github-space
+    deployment_target: github space
+    docs_url: README.md#quick-start
+  runbook_links:
+  - org-docs/docs/runbooks/index.md
+  dashboards: []
+  slo_sla: []
+- id: repo:console-ui
+  name: console-ui
+  description: Internal operations console for managing and monitoring publishing
+    workflows
+  domain: publishing-platform
+  lifecycle: production
+  owner: team-frontend
+  type: website
+  system: publishing-platform
+  repo_path: catalog/components/console-ui
+  techdocs_ref: dir:../../catalog/components/console-ui
+  docs_paths:
+  - catalog/components/console-ui/docs/index.md
+  dependencies:
+  - publisher-service
+  interfaces:
+    produces: []
+    consumes:
+    - type: http
+      name: publisher-service-rest-api
+      description: Consumes publisher-service endpoints documented in integrations.md.
+      dependency: publisher-service
+  contract_refs: []
+- id: repo:manager-ui
+  name: manager-ui
+  description: Content manager portal for creating, scheduling, and reviewing published
+    content
+  domain: publishing-platform
+  lifecycle: production
+  owner: team-frontend
+  type: website
+  system: publishing-platform
+  repo_path: catalog/components/manager-ui
+  techdocs_ref: dir:../../catalog/components/manager-ui
+  docs_paths:
+  - catalog/components/manager-ui/docs/index.md
+  dependencies:
+  - publisher-service
+  interfaces:
+    produces: []
+    consumes:
+    - type: http
+      name: publisher-service-rest-api
+      description: Consumes publisher-service endpoints documented in integrations.md.
+      dependency: publisher-service
+  contract_refs: []
+- id: repo:platform-infra
+  name: platform-infra
+  description: Infrastructure-as-code definitions, CI/CD pipelines, and operational
+    runbooks for the publishing platform
+  domain: publishing-platform
+  lifecycle: production
+  owner: team-backend
+  type: infrastructure
+  system: publishing-platform
+  repo_path: catalog/components/platform-infra
+  techdocs_ref: dir:../../catalog/components/platform-infra
+  docs_paths:
+  - catalog/components/platform-infra/docs/index.md
+  dependencies: []
+  interfaces:
+    produces:
+    - type: runbook
+      name: platform-operations-runbooks
+      description: Operational procedures and environment guidance for the platform.
+      contract: doc:runbook:platform-operations
+    consumes: []
+  contract_refs: []
+- id: repo:platform-lib
+  name: platform-lib
+  description: Shared utility library providing common helpers, models, and client
+    abstractions used across all services and UIs
+  domain: publishing-platform
+  lifecycle: production
+  owner: team-backend
+  type: library
+  system: publishing-platform
+  repo_path: catalog/components/platform-lib
+  techdocs_ref: dir:../../catalog/components/platform-lib
+  docs_paths:
+  - catalog/components/platform-lib/docs/index.md
+  dependencies: []
+  interfaces:
+    produces: []
+    consumes: []
+  contract_refs: []
+- id: repo:publisher-service
+  name: publisher-service
+  description: Core backend service that manages content ingestion, processing, and
+    delivery for the publishing platform
+  domain: publishing-platform
+  lifecycle: production
+  owner: team-backend
+  type: service
+  system: publishing-platform
+  repo_path: catalog/components/publisher-service
+  techdocs_ref: dir:../../catalog/components/publisher-service
+  docs_paths:
+  - catalog/components/publisher-service/docs/index.md
+  dependencies:
+  - platform-lib
+  interfaces:
+    produces:
+    - type: http
+      name: publisher-service-rest-api
+      description: REST API documented in TechDocs and indexed centrally.
+      contract: org-docs/contracts/publisher-service.openapi.yaml
+    consumes: []
+  contract_refs:
+  - contract:publisher-service-http-api
+products:
+- id: product:publishing-platform
+  name: publishing-platform
+  description: End-to-end publishing platform spanning shared libraries, backend APIs,
+    frontend apps, and infrastructure.
+  repositories:
+  - console-ui
+  - manager-ui
+  - platform-infra
+  - platform-lib
+  - publisher-service
+  spec_refs:
+  - doc:spec:publishing-platform-content-lifecycle
+- id: product:org-knowledge-base
+  name: org-knowledge-base
+  description: Documentation-first knowledge base experience exposed through org-docs
+    and generated indices.
+  repositories:
+  - backstage-portal
+  spec_refs:
+  - doc:spec:org-knowledge-base
+contracts:
+- id: contract:publisher-service-http-api
+  name: publisher-service-http-api
+  type: openapi
+  owner: team-backend
+  source: org-docs/contracts/publisher-service.openapi.yaml
+  producers:
+  - publisher-service
+  consumers:
+  - console-ui
+  - manager-ui
+runbooks:
+- id: doc:runbook:platform-operations
+  name: platform-operations
+  source: org-docs/docs/runbooks/index.md
+  backing_docs:
+  - catalog/components/platform-infra/docs/index.md

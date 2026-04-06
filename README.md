@@ -1,6 +1,6 @@
 # Backstage Portal
 
-A fully local [Backstage](https://backstage.io) developer portal demo with [TechDocs](https://backstage.io/docs/features/techdocs/) powered by MkDocs. Everything runs on your machine or inside a GitHub Space — no paid services required.
+A fully local [Backstage](https://backstage.io) developer portal demo with [TechDocs](https://backstage.io/docs/features/techdocs/) powered by MkDocs. The primary demo experience is now an **Org Knowledge Base** built around `org-docs`, strict repo metadata, and generated org-level indexing.
 
 ---
 
@@ -8,12 +8,12 @@ A fully local [Backstage](https://backstage.io) developer portal demo with [Tech
 
 ### 1. Prerequisites
 
-| Tool           | Minimum version | Install guide                     |
-|----------------|-----------------|-----------------------------------|
-| Node.js        | 20              | https://nodejs.org                |
-| Yarn (Classic) | 1.22            | `npm install -g yarn`             |
-| Python         | 3.9             | https://www.python.org/downloads/ |
-| pip            | 21              | bundled with Python ≥ 3.4         |
+| Tool | Minimum version | Install guide |
+|---|---|---|
+| Node.js | 20 | https://nodejs.org |
+| Yarn | 4.x via Corepack | `corepack enable` |
+| Python | 3.9 | https://www.python.org/downloads/ |
+| pip | 21 | bundled with Python ≥ 3.4 |
 
 ### 2. Install TechDocs MkDocs plugin (once)
 
@@ -27,81 +27,88 @@ pip3 install mkdocs-techdocs-core
 yarn install
 ```
 
-### 4. Run in Space / locally
+### 4. Run locally
 
 ```bash
-export GITHUB_MODELS_TOKEN=your_github_models_token   # optional, enables grounded answers
 yarn dev
 ```
 
-| Service  | URL                   |
-|----------|-----------------------|
+| Service | URL |
+|---|---|
 | Frontend | http://localhost:3000 |
-| Backend  | http://localhost:7007 |
+| Backend | http://localhost:7007 |
 
-Open **http://localhost:3000** — the catalog is pre-populated on first boot.
-
-If `GITHUB_MODELS_TOKEN` is not set, the Docs Chat page still works in source-only mode and returns the most relevant TechDocs links with a clear message that the LLM is unavailable.
+Open **http://localhost:3000**. The catalog is pre-populated from the local `catalog/` directory and `org-docs` is registered as the central documentation component.
 
 ---
 
-## What's inside
+## Org Knowledge Base
 
-```
+The knowledge base is intentionally docs-first:
+
+- **Canonical entrypoint:** `org-docs/`
+- **Per-repo machine metadata:** `repo.yaml`
+- **Generated machine index:** `org-docs/org-index.yaml`
+- **Generated human registry:** `org-docs/docs/repository-registry.md`
+- **Cross-repo contract artifact:** `org-docs/contracts/publisher-service.openapi.yaml`
+
+### Knowledge-base sections
+
+- Repository registry
+- Architecture overview
+- Product specs
+- Contracts
+- Runbooks
+- Glossary/domain model
+- Metadata schema
+
+### Automation
+
+`python3 scripts/generate_org_knowledge_base.py` validates the root `repo.yaml`, reads catalog metadata, and regenerates the org-level artifacts. CI runs the same generator in `--check` mode to catch stale files.
+
+## Repository layout
+
+```text
 backstage-portal/
 ├── packages/
-│   ├── app/          # Backstage React frontend
-│   └── backend/      # Backstage Node.js backend
-├── catalog/          # Sample catalog entities (YAML) + TechDocs
-│   ├── groups.yaml               # Groups: team-backend, team-frontend
-│   ├── backend-components.yaml   # platform-lib, publisher-service
-│   ├── frontend-components.yaml  # console-ui, manager-ui, platform-infra
+│   ├── app/                    # Backstage React frontend
+│   └── backend/                # Backstage backend
+├── catalog/                    # Sample catalog entities + component TechDocs
+│   ├── groups.yaml
+│   ├── backend-components.yaml
+│   ├── frontend-components.yaml
 │   └── components/
-│       ├── platform-lib/         # mkdocs.yml + docs/
-│       ├── publisher-service/    # mkdocs.yml + docs/ (incl. api.md)
-│       ├── console-ui/           # mkdocs.yml + docs/ (incl. integrations.md)
-│       ├── manager-ui/           # mkdocs.yml + docs/ (incl. integrations.md)
-│       └── platform-infra/       # mkdocs.yml + docs/
+├── org-docs/                   # Canonical Org Knowledge Base TechDocs site
+│   ├── docs/
+│   ├── contracts/
+│   └── org-index.yaml
+├── scripts/
+│   └── generate_org_knowledge_base.py
+├── repo.yaml                   # Root repo metadata contract
 ├── docs/
-│   └── demo-script.md   # Walk-through of the UI and LLM questions
-├── examples/             # Backstage scaffold examples (kept as-is)
-├── app-config.yaml       # Main Backstage config (TechDocs + catalog locations)
-└── package.json          # Root workspace (yarn dev → backstage-cli repo start)
+│   └── demo-script.md
+├── app-config.yaml
+└── package.json
 ```
 
-## Catalog entities
+## Catalog entities represented in the demo
 
-| Component           | Kind      | Owner         | DependsOn         |
-|---------------------|-----------|---------------|-------------------|
-| publishing-platform | System    | team-backend  | —                 |
-| platform-lib        | Component | team-backend  | —                 |
-| publisher-service   | Component | team-backend  | platform-lib      |
-| console-ui          | Component | team-frontend | publisher-service |
-| manager-ui          | Component | team-frontend | publisher-service |
-| platform-infra      | Component | team-backend  | —                 |
+| Component | Kind | Owner | DependsOn |
+|---|---|---|---|
+| publishing-platform | System | team-backend | — |
+| platform-lib | Component | team-backend | — |
+| publisher-service | Component | team-backend | platform-lib |
+| console-ui | Component | team-frontend | publisher-service |
+| manager-ui | Component | team-frontend | publisher-service |
+| platform-infra | Component | team-backend | — |
 
-## TechDocs
+## Validation
 
-Each component has a `mkdocs.yml` and a `docs/` folder:
+The workflow at `.github/workflows/catalog-docs-check.yml` validates that:
 
-- `index.md` — purpose, ownership, how to run, dependencies
-- `api.md` *(publisher-service only)* — REST API reference (Markdown, no OpenAPI)
-- `integrations.md` *(console-ui, manager-ui)* — which endpoints each UI calls and why
+- repo and catalog YAML remain valid
+- generated knowledge-base artifacts are up to date
+- required org-docs files exist
+- every component and org-docs TechDocs site still builds
 
-See [`docs/demo-script.md`](docs/demo-script.md) for a full click-through guide.
-
-## Docs Chat
-
-- Open **Docs Chat** from the sidebar
-- Ask a question about the docs
-- Review the grounded answer and click through to TechDocs sources
-- The backend watches `org-docs/docs/**` and `catalog/components/**/docs/**`; edits are re-indexed automatically without restarting Backstage
-
-Docs Chat configuration is documented in [`org-docs/docs/docs-chat.md`](org-docs/docs/docs-chat.md).
-
-## CI
-
-A GitHub Actions workflow at `.github/workflows/catalog-docs-check.yml` runs on every push and pull request to verify:
-
-- All YAML catalog files are valid
-- All `mkdocs.yml` files reference existing `docs/index.md` files
+See [`docs/demo-script.md`](docs/demo-script.md) for a walkthrough of the docs-first demo flow.
