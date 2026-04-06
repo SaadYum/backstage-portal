@@ -2,6 +2,7 @@ import { LoggerService } from '@backstage/backend-plugin-api';
 import { watch, type FSWatcher } from 'node:fs';
 import { access, readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
+
 const ROOT_DOCS_ENTITY = 'org-docs';
 const DEFAULT_MODEL = process.env.GITHUB_MODELS_MODEL ?? 'openai/gpt-4.1-mini';
 const DEFAULT_ENDPOINT =

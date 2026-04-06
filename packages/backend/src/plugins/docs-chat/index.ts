@@ -1,5 +1,8 @@
-import { coreServices, createBackendPlugin } from '@backstage/backend-plugin-api';
-import path from 'node:path';
+import {
+  coreServices,
+  createBackendPlugin,
+  resolvePackagePath,
+} from '@backstage/backend-plugin-api';
 import { createRouter } from './router';
 import { DocsChatIndex } from './service';
 
@@ -15,14 +18,14 @@ export const docsChatPlugin = createBackendPlugin({
       async init({ httpRouter, lifecycle, logger }) {
         const index = new DocsChatIndex({
           logger,
-          repoRoot: path.resolve(process.cwd()),
+          repoRoot: resolvePackagePath('backend', '../..'),
         });
 
         await index.init();
 
-        httpRouter.addAuthPolicy({ path: '/status', allow: 'user-cookie' });
-        httpRouter.addAuthPolicy({ path: '/query', allow: 'user-cookie' });
-        httpRouter.addAuthPolicy({ path: '/reindex', allow: 'user-cookie' });
+        httpRouter.addAuthPolicy({ path: '/status', allow: 'unauthenticated' });
+        httpRouter.addAuthPolicy({ path: '/query', allow: 'unauthenticated' });
+        httpRouter.addAuthPolicy({ path: '/reindex', allow: 'unauthenticated' });
         httpRouter.use(await createRouter({ index }));
 
         lifecycle.addShutdownHook(async () => {

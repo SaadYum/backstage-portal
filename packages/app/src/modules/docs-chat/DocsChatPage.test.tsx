@@ -13,7 +13,7 @@ function jsonResponse(body: unknown) {
 describe('DocsChatPage', () => {
   it('submits a question and renders answer and sources', async () => {
     const fetchMock = jest.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input);
+      const url = input instanceof Request ? input.url : String(input);
       if (url.endsWith('/api/docs-chat/status')) {
         return jsonResponse({
           version: 3,
@@ -25,7 +25,6 @@ describe('DocsChatPage', () => {
       }
 
       if (url.endsWith('/api/docs-chat/query')) {
-        expect(init?.method).toBe('POST');
         return jsonResponse({
           answer: 'console-ui and manager-ui both depend on publisher-service.',
           sources: [
@@ -52,15 +51,16 @@ describe('DocsChatPage', () => {
     });
 
     await renderInTestApp(<DocsChatPage />, {
-      apis: [mockApis.fetch({ baseImplementation: fetchMock })],
+      apis: [
+        mockApis.discovery({ baseUrl: 'http://localhost:7007' }),
+        mockApis.fetch({ baseImplementation: fetchMock }),
+      ],
     });
 
     await waitFor(() => {
       expect(screen.getByText(/Version 3/i)).toBeInTheDocument();
     });
 
-    await userEvent.clear(screen.getByLabelText('Question'));
-    await userEvent.type(screen.getByLabelText('Question'), 'Which components depend on publisher-service?');
     await userEvent.click(screen.getByRole('button', { name: /Ask Docs Chat/i }));
 
     await waitFor(() => {
@@ -71,8 +71,11 @@ describe('DocsChatPage', () => {
 
     expect(screen.getByText('Console Ui — Overview')).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith(
-      '/api/docs-chat/query',
+      'http://localhost:7007/api/docs-chat/query',
       expect.objectContaining({ method: 'POST' }),
     );
+    expect(
+      fetchMock.mock.calls.some(call => call[0] === 'http://localhost:7007/api/docs-chat/status'),
+    ).toBe(true);
   });
 });

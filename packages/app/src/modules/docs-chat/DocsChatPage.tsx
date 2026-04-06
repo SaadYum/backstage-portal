@@ -1,5 +1,5 @@
 import { Content, ContentHeader, InfoCard, Link, Page, Progress } from '@backstage/core-components';
-import { fetchApiRef, useApi } from '@backstage/core-plugin-api';
+import { discoveryApiRef, fetchApiRef, useApi } from '@backstage/core-plugin-api';
 import {
   Box,
   Button,
@@ -31,6 +31,7 @@ type DocsChatStatus = {
 };
 
 export function DocsChatPage() {
+  const discoveryApi = useApi(discoveryApiRef);
   const fetchApi = useApi(fetchApiRef);
   const [question, setQuestion] = useState('Which components depend on publisher-service?');
   const [answer, setAnswer] = useState(DEFAULT_ANSWER);
@@ -44,7 +45,8 @@ export function DocsChatPage() {
   const loadStatus = useCallback(async () => {
     setLoadingStatus(true);
     try {
-      const response = await fetchApi.fetch('/api/docs-chat/status');
+      const baseUrl = await discoveryApi.getBaseUrl('docs-chat');
+      const response = await fetchApi.fetch(`${baseUrl}/status`);
       if (!response.ok) {
         throw new Error(`Status request failed with ${response.status}`);
       }
@@ -56,7 +58,7 @@ export function DocsChatPage() {
     } finally {
       setLoadingStatus(false);
     }
-  }, [fetchApi]);
+  }, [discoveryApi, fetchApi]);
 
   useEffect(() => {
     void loadStatus();
@@ -67,7 +69,8 @@ export function DocsChatPage() {
     setError(undefined);
 
     try {
-      const response = await fetchApi.fetch('/api/docs-chat/query', {
+      const baseUrl = await discoveryApi.getBaseUrl('docs-chat');
+      const response = await fetchApi.fetch(`${baseUrl}/query`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question }),
@@ -87,13 +90,14 @@ export function DocsChatPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [fetchApi, loadStatus, question]);
+  }, [discoveryApi, fetchApi, loadStatus, question]);
 
   const triggerReindex = useCallback(async () => {
     setReindexing(true);
     setError(undefined);
     try {
-      const response = await fetchApi.fetch('/api/docs-chat/reindex', { method: 'POST' });
+      const baseUrl = await discoveryApi.getBaseUrl('docs-chat');
+      const response = await fetchApi.fetch(`${baseUrl}/reindex`, { method: 'POST' });
       if (!response.ok) {
         throw new Error(`Reindex failed with ${response.status}`);
       }
@@ -104,7 +108,7 @@ export function DocsChatPage() {
     } finally {
       setReindexing(false);
     }
-  }, [fetchApi]);
+  }, [discoveryApi, fetchApi]);
 
   const statusSummary = useMemo(() => {
     if (!status) {
@@ -125,7 +129,6 @@ export function DocsChatPage() {
                 <TextField
                   label="Question"
                   multiline
-                  rowsMin={3}
                   value={question}
                   onChange={event => setQuestion(event.target.value)}
                   variant="outlined"

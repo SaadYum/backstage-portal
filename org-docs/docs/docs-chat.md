@@ -36,3 +36,7 @@ If `GITHUB_MODELS_TOKEN` is missing, Docs Chat still returns relevant sources an
 - What authentication does `publisher-service` require?
 - Where is the TechDocs content for `platform-lib` stored?
 - What docs are missing if I ask about a capability that is not documented yet?
+
+## Status endpoint verification
+
+Editing a watched Markdown file increments the Docs Chat index version without restarting Backstage.
