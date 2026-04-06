@@ -1,0 +1,110 @@
+name: Org Knowledge Base Check
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  yaml-lint:
+    name: Validate metadata and catalog YAML
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Lint YAML files
+        run: |
+          yamllint -d "{extends: relaxed, rules: {line-length: {max: 200}}}" \
+            repo.yaml \
+            catalog/groups.yaml \
+            catalog/backend-components.yaml \
+            catalog/frontend-components.yaml \
+            org-docs/catalog-info.yaml \
+            org-docs/contracts/publisher-service.openapi.yaml \
+            org-docs/org-index.yaml
+
+  knowledge-base-sync:
+    name: Validate generated knowledge-base artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install generator dependencies
+        run: pip install pyyaml
+
+      - name: Verify generated files are up to date
+        run: python3 scripts/generate_org_knowledge_base.py --check
+
+  docs-check:
+    name: Verify required docs structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required knowledge-base files exist
+        run: |
+          set -e
+          COMPONENTS="platform-lib publisher-service console-ui manager-ui platform-infra"
+          for comp in $COMPONENTS; do
+            dir="catalog/components/$comp"
+            echo "Checking $dir ..."
+            test -f "$dir/mkdocs.yml" || (echo "MISSING: $dir/mkdocs.yml" && exit 1)
+            test -f "$dir/docs/index.md" || (echo "MISSING: $dir/docs/index.md" && exit 1)
+          done
+
+          test -f repo.yaml || (echo "MISSING: repo.yaml" && exit 1)
+          test -f scripts/generate_org_knowledge_base.py || (echo "MISSING: generator script" && exit 1)
+          test -f org-docs/mkdocs.yml || (echo "MISSING: org-docs/mkdocs.yml" && exit 1)
+          test -f org-docs/org-index.yaml || (echo "MISSING: org-docs/org-index.yaml" && exit 1)
+          test -f org-docs/docs/index.md || (echo "MISSING: org-docs/docs/index.md" && exit 1)
+          test -f org-docs/docs/repository-registry.md || (echo "MISSING: org-docs/docs/repository-registry.md" && exit 1)
+          test -f org-docs/docs/architecture/index.md || (echo "MISSING: org-docs/docs/architecture/index.md" && exit 1)
+          test -f org-docs/docs/specs/org-knowledge-base.md || (echo "MISSING: org-docs/docs/specs/org-knowledge-base.md" && exit 1)
+          test -f org-docs/docs/specs/publishing-platform-content-lifecycle.md || (echo "MISSING: org-docs/docs/specs/publishing-platform-content-lifecycle.md" && exit 1)
+          test -f org-docs/docs/contracts/index.md || (echo "MISSING: org-docs/docs/contracts/index.md" && exit 1)
+          test -f org-docs/docs/runbooks/index.md || (echo "MISSING: org-docs/docs/runbooks/index.md" && exit 1)
+          test -f org-docs/docs/glossary/index.md || (echo "MISSING: org-docs/docs/glossary/index.md" && exit 1)
+          test -f org-docs/docs/metadata/index.md || (echo "MISSING: org-docs/docs/metadata/index.md" && exit 1)
+          test -f org-docs/contracts/publisher-service.openapi.yaml || (echo "MISSING: org-docs/contracts/publisher-service.openapi.yaml" && exit 1)
+          test -f catalog/components/publisher-service/docs/api.md || (echo "MISSING: publisher-service API docs" && exit 1)
+          test -f catalog/components/console-ui/docs/integrations.md || (echo "MISSING: console-ui integrations docs" && exit 1)
+          test -f catalog/components/manager-ui/docs/integrations.md || (echo "MISSING: manager-ui integrations docs" && exit 1)
+          echo "All required knowledge-base files are present."
+
+  mkdocs-build:
+    name: MkDocs build check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install MkDocs
+        run: pip install mkdocs-techdocs-core
+
+      - name: Build docs for each component and org-docs
+        run: |
+          set -e
+          COMPONENTS="platform-lib publisher-service console-ui manager-ui platform-infra"
+          for comp in $COMPONENTS; do
+            echo "Building docs for $comp ..."
+            mkdocs build --config-file "catalog/components/$comp/mkdocs.yml" \
+              --site-dir "/tmp/mkdocs-$comp"
+          done
+          mkdocs build --config-file org-docs/mkdocs.yml --site-dir /tmp/mkdocs-org-docs
+          echo "All MkDocs builds succeeded."

@@ -1,0 +1,15 @@
+site_name: org-docs
+docs_dir: docs
+plugins:
+  - techdocs-core
+nav:
+  - Overview: index.md
+  - Repository Registry: repository-registry.md
+  - Architecture: architecture/index.md
+  - Product Specs:
+      - Org Knowledge Base: specs/org-knowledge-base.md
+      - Publishing Platform Content Lifecycle: specs/publishing-platform-content-lifecycle.md
+  - Contracts: contracts/index.md
+  - Runbooks: runbooks/index.md
+  - Glossary: glossary/index.md
+  - Metadata Schema: metadata/index.md

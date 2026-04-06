@@ -1,0 +1,64 @@
+schema_version: 1
+name: backstage-portal
+description: Backstage developer portal demo that hosts the Publishing Platform catalog and the org-level knowledge base.
+domain: developer-portal
+lifecycle: active
+owners:
+  team: team-backend
+  slack: '#team-backend'
+entrypoints:
+  - name: backstage-frontend
+    kind: app
+    path: packages/app
+    description: Backstage React frontend for catalog and TechDocs navigation.
+  - name: backstage-backend
+    kind: service
+    path: packages/backend
+    description: Backstage backend serving catalog, TechDocs, and supporting APIs.
+  - name: org-docs
+    kind: docs
+    path: org-docs
+    description: Canonical Org Knowledge Base TechDocs site.
+dependencies:
+  internal_repositories:
+    - platform-lib
+    - publisher-service
+    - console-ui
+    - manager-ui
+    - platform-infra
+  external_services:
+    - GitHub
+    - local filesystem
+interfaces:
+  produces:
+    - type: catalog
+      name: backstage-catalog
+      path: catalog/*.yaml
+      description: Catalog entities and ownership metadata for the demo platform.
+    - type: techdocs
+      name: org-knowledge-base
+      path: org-docs/docs
+      description: Human-readable org documentation rendered through TechDocs.
+    - type: index
+      name: org-index
+      path: org-docs/org-index.yaml
+      description: Machine-ingestible index of repositories, products, contracts, and ownership.
+  consumes:
+    - type: git
+      name: local-repository-content
+      description: Reads catalog YAML, TechDocs markdown, and contract artifacts from this repository.
+security:
+  auth_method: backstage-guest-auth-local
+  permissions_model: Backstage permission framework enabled with guest access for the local demo.
+  data_sensitivity: internal-demo
+environments:
+  - name: local
+    deployment_target: developer workstation
+    docs_url: org-docs/docs/runbooks/index.md#environments
+  - name: github-space
+    deployment_target: github space
+    docs_url: README.md#quick-start
+runbook_links:
+  - org-docs/docs/runbooks/index.md
+dashboards: []
+slo_sla: []

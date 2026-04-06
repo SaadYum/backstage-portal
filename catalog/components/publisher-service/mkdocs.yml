@@ -1,0 +1,7 @@
+site_name: publisher-service
+docs_dir: docs
+plugins:
+  - techdocs-core
+nav:
+  - Overview: index.md
+  - REST API Reference: api.md
