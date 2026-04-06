@@ -7,6 +7,7 @@
  */
 
 import { createBackend } from '@backstage/backend-defaults';
+import { docsChatPlugin } from './plugins/docs-chat';
 
 const backend = createBackend();
 
@@ -62,5 +63,7 @@ backend.add(import('@backstage/plugin-kubernetes-backend'));
 // notifications and signals plugins
 backend.add(import('@backstage/plugin-notifications-backend'));
 backend.add(import('@backstage/plugin-signals-backend'));
+
+backend.add(docsChatPlugin);
 
 backend.start();

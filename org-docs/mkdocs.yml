@@ -1,0 +1,7 @@
+site_name: org-docs
+docs_dir: docs
+plugins:
+  - techdocs-core
+nav:
+  - Overview: index.md
+  - Docs Chat: docs-chat.md

@@ -30,6 +30,7 @@ yarn install
 ### 4. Run in Space / locally
 
 ```bash
+export GITHUB_MODELS_TOKEN=your_github_models_token   # optional, enables grounded answers
 yarn dev
 ```
 
@@ -39,6 +40,8 @@ yarn dev
 | Backend  | http://localhost:7007 |
 
 Open **http://localhost:3000** — the catalog is pre-populated on first boot.
+
+If `GITHUB_MODELS_TOKEN` is not set, the Docs Chat page still works in source-only mode and returns the most relevant TechDocs links with a clear message that the LLM is unavailable.
 
 ---
 
@@ -86,6 +89,15 @@ Each component has a `mkdocs.yml` and a `docs/` folder:
 - `integrations.md` *(console-ui, manager-ui)* — which endpoints each UI calls and why
 
 See [`docs/demo-script.md`](docs/demo-script.md) for a full click-through guide.
+
+## Docs Chat
+
+- Open **Docs Chat** from the sidebar
+- Ask a question about the docs
+- Review the grounded answer and click through to TechDocs sources
+- The backend watches `org-docs/docs/**` and `catalog/components/**/docs/**`; edits are re-indexed automatically without restarting Backstage
+
+Docs Chat configuration is documented in [`org-docs/docs/docs-chat.md`](org-docs/docs/docs-chat.md).
 
 ## CI
 

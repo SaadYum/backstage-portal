@@ -118,6 +118,10 @@ catalog:
     - type: file
       target: ../../catalog/frontend-components.yaml
 
+    # Central documentation site
+    - type: file
+      target: ../../org-docs/catalog-info.yaml
+
 kubernetes:
   # see https://backstage.io/docs/features/kubernetes/configuration for kubernetes configuration options
 
