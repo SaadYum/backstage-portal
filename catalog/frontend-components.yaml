@@ -1,0 +1,49 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: console-ui
+  description: Internal operations console for managing and monitoring publishing workflows
+  annotations:
+    backstage.io/techdocs-ref: dir:../../catalog/components/console-ui
+  labels:
+    tier: frontend
+spec:
+  type: website
+  lifecycle: production
+  owner: team-frontend
+  system: publishing-platform
+  dependsOn:
+    - component:publisher-service
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: manager-ui
+  description: Content manager portal for creating, scheduling, and reviewing published content
+  annotations:
+    backstage.io/techdocs-ref: dir:../../catalog/components/manager-ui
+  labels:
+    tier: frontend
+spec:
+  type: website
+  lifecycle: production
+  owner: team-frontend
+  system: publishing-platform
+  dependsOn:
+    - component:publisher-service
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: platform-infra
+  description: Infrastructure-as-code definitions, CI/CD pipelines, and operational runbooks for the publishing platform
+  annotations:
+    backstage.io/techdocs-ref: dir:../../catalog/components/platform-infra
+  labels:
+    tier: devops
+spec:
+  type: infrastructure
+  lifecycle: production
+  owner: team-backend
+  system: publishing-platform

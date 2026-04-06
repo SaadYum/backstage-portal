@@ -1,0 +1,7 @@
+site_name: console-ui
+docs_dir: docs
+plugins:
+  - techdocs-core
+nav:
+  - Overview: index.md
+  - Integrations: integrations.md

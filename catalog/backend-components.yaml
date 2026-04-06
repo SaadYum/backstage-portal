@@ -1,0 +1,40 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: publishing-platform
+  description: End-to-end publishing platform encompassing backend services and frontend UIs
+spec:
+  owner: team-backend
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: platform-lib
+  description: Shared utility library providing common helpers, models, and client abstractions used across all services and UIs
+  annotations:
+    backstage.io/techdocs-ref: dir:../../catalog/components/platform-lib
+  labels:
+    tier: library
+spec:
+  type: library
+  lifecycle: production
+  owner: team-backend
+  system: publishing-platform
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: publisher-service
+  description: Core backend service that manages content ingestion, processing, and delivery for the publishing platform
+  annotations:
+    backstage.io/techdocs-ref: dir:../../catalog/components/publisher-service
+  labels:
+    tier: backend
+spec:
+  type: service
+  lifecycle: production
+  owner: team-backend
+  system: publishing-platform
+  dependsOn:
+    - component:platform-lib

@@ -1,0 +1,31 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-backend
+  description: Backend engineering team responsible for services and shared libraries
+spec:
+  type: team
+  children: []
+  members:
+    - guest
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-frontend
+  description: Frontend engineering team responsible for UI applications
+spec:
+  type: team
+  children: []
+  members:
+    - guest
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: guest
+spec:
+  memberOf:
+    - team-backend
+    - team-frontend

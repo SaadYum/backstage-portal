@@ -1,0 +1,71 @@
+name: Catalog & Docs Check
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  yaml-lint:
+    name: Validate catalog YAML
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Lint catalog YAML files
+        run: |
+          yamllint -d "{extends: relaxed, rules: {line-length: {max: 200}}}" \
+            catalog/groups.yaml \
+            catalog/backend-components.yaml \
+            catalog/frontend-components.yaml
+
+  docs-check:
+    name: Verify TechDocs structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required docs files exist
+        run: |
+          set -e
+          COMPONENTS="platform-lib publisher-service console-ui manager-ui platform-infra"
+          for comp in $COMPONENTS; do
+            dir="catalog/components/$comp"
+            echo "Checking $dir ..."
+            test -f "$dir/mkdocs.yml"    || (echo "MISSING: $dir/mkdocs.yml"    && exit 1)
+            test -f "$dir/docs/index.md" || (echo "MISSING: $dir/docs/index.md" && exit 1)
+          done
+          # Extra docs for service and frontends
+          test -f catalog/components/publisher-service/docs/api.md     || (echo "MISSING api.md"         && exit 1)
+          test -f catalog/components/console-ui/docs/integrations.md   || (echo "MISSING integrations.md" && exit 1)
+          test -f catalog/components/manager-ui/docs/integrations.md   || (echo "MISSING integrations.md" && exit 1)
+          echo "All required docs files are present."
+
+  mkdocs-build:
+    name: MkDocs build check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install MkDocs
+        run: pip install mkdocs-techdocs-core
+
+      - name: Build docs for each component
+        run: |
+          set -e
+          COMPONENTS="platform-lib publisher-service console-ui manager-ui platform-infra"
+          for comp in $COMPONENTS; do
+            echo "Building docs for $comp ..."
+            mkdocs build --config-file "catalog/components/$comp/mkdocs.yml" \
+                         --site-dir "/tmp/mkdocs-$comp"
+          done
+          echo "All MkDocs builds succeeded."
